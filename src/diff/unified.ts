@@ -36,7 +36,11 @@ export interface ParseUnifiedOptions {
 /** Strip a leading `a/` or `b/` git path prefix. */
 function cleanPath(p: string | undefined): string | undefined {
   if (!p) return p;
-  const trimmed = p.replace(/\t.*$/, "").trim();
+  // Drop the tab-separated metadata suffix (`--- a/f.txt\t2026-01-01 ...`).
+  // indexOf + slice instead of /\t.*$/ — the regex backtracks polynomially on
+  // adversarial tab-heavy input (CodeQL js/polynomial-redos); this is O(n).
+  const tab = p.indexOf("\t");
+  const trimmed = (tab === -1 ? p : p.slice(0, tab)).trim();
   if (trimmed === "/dev/null") return trimmed;
   return trimmed.replace(/^[ab]\//, "");
 }
