@@ -1,6 +1,6 @@
 {
   "name": "@particle-academy/fancy-file-commons",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Shared pure core for the Fancy file-focused packages — editors, viewers, writers, and diff surfaces. Structured diff engine + model, git unified-diff parser, merge resolution, per-line gutter annotations, path helpers, and filename→language resolution. Zero dependencies, no React.",
   "repository": {
     "type": "git",
