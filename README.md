@@ -1,5 +1,7 @@
 # Fancy File Commons
 
+[![Fancified](art/fancified.svg)](https://particle.academy)
+
 `@particle-academy/fancy-file-commons` — the **shared pure core for all of the
 Fancy file-focused packages**: the editors
 ([`fancy-code`](https://github.com/Particle-Academy/fancy-code)), the viewers
