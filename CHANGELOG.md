@@ -15,6 +15,8 @@ upgrading.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-02
+
 ### Added
 
 - **Every syntax grammar now lives here.** The JavaScript (also TypeScript and JSON), PHP, Python, Go and Markdown tokenizers moved from `fancy-code`, unchanged, beside the existing HTML one: `tokenizeJavaScript`, `tokenizePhp`, `tokenizePython`, `tokenizeGo`, `tokenizeMarkdown`. Before this, `EXT_LANGUAGE` named five languages whose tokenizers this package did not ship, and react-fancy (which `fancy-code` depends on, so it cannot import `fancy-code`) could only highlight HTML.
