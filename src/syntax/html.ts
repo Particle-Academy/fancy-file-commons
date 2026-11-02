@@ -3,9 +3,8 @@ import type { Token, Tokenizer } from "./tokenizer";
 /**
  * HTML/XML tokenizer. Walks char-by-char emitting tag punctuation, tag names,
  * attributes, quoted/unquoted attribute values, comments, and the doctype.
- * Pure and self-contained — the one syntax grammar `fancy-file-commons` ships,
- * because HTML is what the shared Editor source view needs. Richer language
- * grammars (JS/TS/PHP/Python/Go/Markdown) live in `fancy-code`.
+ * Pure and self-contained. The PHP grammar reuses it for the HTML around
+ * `<?php ... ?>` blocks.
  */
 export const tokenizeHtml: Tokenizer = (source: string): Token[] => {
   const tokens: Token[] = [];

@@ -51,19 +51,27 @@ export function highlightCode(source: string, tokens: Token[], colors: ThemeColo
   let pos = 0;
 
   for (const token of tokens) {
+    // Never re-emit text an earlier token already covered, and never run past
+    // the source: a token that overlaps its predecessor (PHP's HTML chunk with
+    // an unterminated `<!--` reports an end inside the following `<?php`) is
+    // trimmed to the part not yet rendered, so no character is duplicated.
+    const start = Math.max(token.start, pos);
+    const end = Math.min(token.end, source.length);
+    if (end <= start) continue;
+
     // Plain text before this token
-    if (token.start > pos) {
-      parts.push(escapeHtml(source.slice(pos, token.start)));
+    if (start > pos) {
+      parts.push(escapeHtml(source.slice(pos, start)));
     }
 
-    const text = escapeHtml(source.slice(token.start, token.end));
+    const text = escapeHtml(source.slice(start, end));
     const color = safeColor(colorMap[token.type]);
     const style = token.type === "comment"
       ? `color:${color};font-style:italic`
       : `color:${color}`;
 
     parts.push(`<span style="${style}">${text}</span>`);
-    pos = token.end;
+    pos = end;
   }
 
   // Remaining text after last token

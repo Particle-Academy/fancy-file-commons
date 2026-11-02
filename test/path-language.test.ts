@@ -37,7 +37,8 @@ test("languageFromFilename maps known extensions", () => {
 test("languageFromFilename falls back to plaintext", () => {
   assert.equal(languageFromFilename(), "plaintext");
   assert.equal(languageFromFilename("Makefile"), "plaintext");
-  assert.equal(languageFromFilename(".env"), "plaintext");
+  // `.env` used to fall through here; it is dotenv since 0.4 (see tokenize-lookup.test.ts).
+  assert.equal(languageFromFilename(".gitignore"), "plaintext");
   assert.equal(languageFromFilename("photo.png"), "plaintext");
 });
 

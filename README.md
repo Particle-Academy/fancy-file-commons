@@ -42,7 +42,44 @@ MCP bridge.
 ### `language` — filename → editor language
 
 `languageFromFilename("app.tsx")` → `"typescript"`, backed by the suite-wide
-`EXT_LANGUAGE` extension map. Unknown → `"plaintext"`.
+`EXT_LANGUAGE` extension map (plus `.env*` → `"dotenv"` and shell rc files →
+`"shell"`). Unknown → `"plaintext"`. Every language it returns has a tokenizer.
+
+### `syntax` — tokenizers + highlighting
+
+Every grammar the suite ships, pure and dependency-free. A tokenizer is
+`(source) => Token[]`, where a token is `{ type, start, end }` offsets into the
+source.
+
+| Canonical id | Aliases | Tokenizer |
+|---|---|---|
+| `javascript` | `js`, `jsx`, `mjs`, `cjs`, `json`, `jsonc`, `json5` | `tokenizeJavaScript` |
+| `typescript` | `ts`, `tsx`, `mts`, `cts` | `tokenizeJavaScript` |
+| `html` | `htm`, `xml`, `xhtml`, `vue`, `svg` | `tokenizeHtml` |
+| `php` | `phtml` | `tokenizePhp` |
+| `python` | `py`, `pyw` | `tokenizePython` |
+| `go` | `golang` | `tokenizeGo` |
+| `markdown` | `md`, `mkd`, `mdx` | `tokenizeMarkdown` |
+| `shell` | `sh`, `bash`, `zsh`, `ksh`, `console`, `shellscript` | `tokenizeShell` |
+| `dotenv` | `env` | `tokenizeDotenv` |
+
+Lookups are case-insensitive and ignore a leading dot (`".env"`, `"TS"`):
+
+- `tokenize(code, language)` → well-formed tokens, or `null` for an unknown
+  language (render it as plain text).
+- `tokenizerFor(language)` → the tokenizer, or `null`.
+- `resolveSyntaxLanguage(language)` → the canonical id, or `null`.
+- `normalizeTokens(code, tokens)` → clamps, de-overlaps and drops empty tokens;
+  `tokenize` already applies it.
+
+`highlightCode(code, tokens, LIGHT_COLORS | DARK_COLORS)` renders HTML spans and
+HTML-escapes every character of the source, highlighted or not. It never
+duplicates or drops text, even for overlapping or out-of-range tokens.
+
+The token types are a closed set shared with the palettes, so the newer
+grammars reuse existing slots: shell flags and dotenv keys are `attribute`,
+shell command words are `function`, and `$VAR` / `${VAR}` / assignment names
+are `variable`.
 
 ## Install
 
@@ -60,6 +97,9 @@ import {
   setAllStatus,
   languageFromFilename,
   extname,
+  tokenize,
+  highlightCode,
+  LIGHT_COLORS,
 } from "@particle-academy/fancy-file-commons";
 
 // Structured diff
@@ -74,6 +114,11 @@ mergeResult(diff, setAllStatus(diff, "accepted")); // "a\nB\nc\nd"
 
 languageFromFilename("src/App.tsx"); // "typescript"
 extname("report.final.XLSX"); // "xlsx"
+
+// Highlight any supported language; unknown -> null -> plain text
+const code = 'npm run build -- --watch # dev';
+const tokens = tokenize(code, "bash");
+const html = tokens ? highlightCode(code, tokens, LIGHT_COLORS) : null;
 ```
 
 ## Consumers
@@ -81,7 +126,8 @@ extname("report.final.XLSX"); // "xlsx"
 | Package | Uses |
 |---|---|
 | `@particle-academy/fancy-diff` | the whole diff module (re-exported), + the React review UI on top |
-| `@particle-academy/fancy-code` | `annotateLines` for the CodeEditor diff gutter; `languageFromFilename` for FileViewer |
+| `@particle-academy/fancy-code` | `annotateLines` for the CodeEditor diff gutter; `languageFromFilename` for FileViewer; every tokenizer for CodeEditor |
+| `@particle-academy/react-fancy` | `tokenize` + `highlightCode` + palettes for `CodeBlock` and `CodeView` |
 
 New shared file functionality (mime maps, file-tree models, artifact naming, …)
 lands here first, then the surface packages consume it.

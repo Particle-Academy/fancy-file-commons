@@ -16,11 +16,29 @@ export { basename, extname, stem } from "./path";
 // Filename → editor language resolution.
 export { languageFromFilename, EXT_LANGUAGE } from "./language";
 
-// Syntax highlighting primitives — pure tokenizer/highlighter core + the HTML
-// grammar + shared light/dark palettes. Richer language grammars live in
-// fancy-code; this is the minimal core the shared Editor source view needs.
-export type { Token, TokenType, Tokenizer, ThemeColors } from "./syntax";
-export { tok, tokenizeHtml, highlightCode, LIGHT_COLORS, DARK_COLORS } from "./syntax";
+// Syntax highlighting — pure tokenizer/highlighter core, every grammar the
+// suite ships (HTML, JavaScript/TypeScript/JSON, PHP, Python, Go, Markdown,
+// shell, dotenv), one alias-aware lookup, and the shared light/dark palettes.
+export type { Token, TokenType, Tokenizer, ThemeColors, SyntaxLanguage } from "./syntax";
+export {
+  tok,
+  tokenizeHtml,
+  tokenizeJavaScript,
+  tokenizePhp,
+  tokenizePython,
+  tokenizeGo,
+  tokenizeMarkdown,
+  tokenizeShell,
+  tokenizeDotenv,
+  SYNTAX_LANGUAGES,
+  resolveSyntaxLanguage,
+  tokenizerFor,
+  tokenize,
+  normalizeTokens,
+  highlightCode,
+  LIGHT_COLORS,
+  DARK_COLORS,
+} from "./syntax";
 
 // Diff engine (pure, zero-dep).
 export { computeDiff, buildDiff, splitLines, hunkId } from "./diff/engine";
