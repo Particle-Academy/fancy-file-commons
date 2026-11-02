@@ -15,6 +15,8 @@ upgrading.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-02
+
 ### Added
 
 - **PHP snippet mode.** `tokenize(code, language, { snippet: true })` and the new `tokenizePhpSnippet` start PHP in PHP mode when the code opens no block before closing one: no `<?` at all (`use Foo\Bar;\n$x = 1;`), or a `?>` ahead of the first `<?` (`echo $x; ?>\n<p>..</p>`). Code that opens with `<?php` / `<?=` / `<?` tokenizes exactly as before. Documentation surfaces (react-fancy's `CodeBlock` / `CodeView`) pass it; **file surfaces must not**, because a `.php` file really is inline HTML until its open tag. The option is a no-op for every other language. `TokenizeOptions` is exported.
