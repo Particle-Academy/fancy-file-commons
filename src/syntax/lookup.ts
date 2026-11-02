@@ -1,7 +1,7 @@
 import type { Token, Tokenizer } from "./tokenizer";
 import { tokenizeHtml } from "./html";
 import { tokenizeJavaScript } from "./javascript";
-import { tokenizePhp } from "./php";
+import { tokenizePhp, tokenizePhpSnippet } from "./php";
 import { tokenizePython } from "./python";
 import { tokenizeGo } from "./go";
 import { tokenizeMarkdown } from "./markdown";
@@ -90,13 +90,36 @@ export function normalizeTokens(source: string, tokens: Token[]): Token[] {
   return out;
 }
 
+/** Options for `tokenize`. */
+export interface TokenizeOptions {
+  /**
+   * The code is a documentation snippet, not a whole file. Only PHP reads it
+   * today: a snippet without an opening `<?php` starts in PHP mode instead of
+   * inline HTML (see `tokenizePhpSnippet`). Display surfaces (react-fancy's
+   * `CodeBlock`) pass it; file surfaces (an editor opening a `.php` file) must
+   * not, because a file really is HTML until its first `<?php`.
+   * @default false
+   */
+  snippet?: boolean;
+}
+
+/** Snippet-mode overrides; every other language tokenizes the same either way. */
+const SNIPPET_TOKENIZERS: Partial<Record<SyntaxLanguage, Tokenizer>> = {
+  php: tokenizePhpSnippet,
+};
+
 /**
  * Tokenize `code` as `language` (id or alias). Returns well-formed tokens (see
  * `normalizeTokens`), or `null` when the language is unknown, so callers can
  * fall back to plain text.
  */
-export function tokenize(code: string, language: string | null | undefined): Token[] | null {
-  const tokenizer = tokenizerFor(language);
-  if (!tokenizer) return null;
+export function tokenize(
+  code: string,
+  language: string | null | undefined,
+  options?: TokenizeOptions,
+): Token[] | null {
+  const id = resolveSyntaxLanguage(language);
+  if (!id) return null;
+  const tokenizer = (options?.snippet === true ? SNIPPET_TOKENIZERS[id] : undefined) ?? TOKENIZERS[id];
   return normalizeTokens(code, tokenizer(code));
 }

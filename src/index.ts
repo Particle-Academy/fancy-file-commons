@@ -19,12 +19,21 @@ export { languageFromFilename, EXT_LANGUAGE } from "./language";
 // Syntax highlighting — pure tokenizer/highlighter core, every grammar the
 // suite ships (HTML, JavaScript/TypeScript/JSON, PHP, Python, Go, Markdown,
 // shell, dotenv), one alias-aware lookup, and the shared light/dark palettes.
-export type { Token, TokenType, Tokenizer, ThemeColors, SyntaxLanguage } from "./syntax";
+export type {
+  Token,
+  TokenType,
+  Tokenizer,
+  ThemeColors,
+  ThemeColorKey,
+  SyntaxLanguage,
+  TokenizeOptions,
+} from "./syntax";
 export {
   tok,
   tokenizeHtml,
   tokenizeJavaScript,
   tokenizePhp,
+  tokenizePhpSnippet,
   tokenizePython,
   tokenizeGo,
   tokenizeMarkdown,
@@ -36,6 +45,11 @@ export {
   tokenize,
   normalizeTokens,
   highlightCode,
+  highlightCodeWithVariables,
+  themeVariables,
+  themeColorVar,
+  safeCssColor,
+  THEME_COLOR_KEYS,
   LIGHT_COLORS,
   DARK_COLORS,
 } from "./syntax";

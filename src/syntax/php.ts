@@ -132,11 +132,49 @@ function tokenizePhpBlock(source: string, offset: number): { tokens: Token[]; en
   return { tokens, end: i };
 }
 
-export const tokenizePhp: Tokenizer = (source: string): Token[] => {
+/**
+ * PHP as a FILE: inline HTML until the first `<?php` / `<?=` / `<?`, which is
+ * what PHP itself does. Use this for anything opened from disk.
+ */
+export const tokenizePhp: Tokenizer = (source: string): Token[] => tokenizePhpFrom(source, false);
+
+/**
+ * Should a snippet start in PHP mode? Yes when it opens no PHP block before it
+ * closes one: no `<?` at all (`use Foo;\n$x = 1;`), or a `?>` ahead of the
+ * first `<?` (`echo $x; ?>\n<p>..</p><?php ...`). Anything that opens a block
+ * first is a template, and keeps file semantics.
+ */
+function snippetStartsInPhp(source: string): boolean {
+  const open = source.indexOf("<?");
+  if (open === -1) return true;
+  const close = source.indexOf("?>");
+  return close !== -1 && close < open;
+}
+
+/**
+ * PHP as a documentation SNIPPET: code that omits the `<?php` open tag starts in
+ * PHP mode; code that opens with a tag (or is a template) is tokenized exactly
+ * like `tokenizePhp`. A `?>` switches to inline HTML as usual.
+ */
+export const tokenizePhpSnippet: Tokenizer = (source: string): Token[] =>
+  tokenizePhpFrom(source, snippetStartsInPhp(source));
+
+function tokenizePhpFrom(source: string, startInPhp: boolean): Token[] {
   const tokens: Token[] = [];
   const len = source.length;
   let i = 0;
   let htmlChunkStart = 0;
+
+  if (startInPhp) {
+    const result = tokenizePhpBlock(source, 0);
+    tokens.push(...result.tokens);
+    i = result.end;
+    if (i < len && source[i] === "?" && source[i + 1] === ">") {
+      tokens.push({ type: "keyword", start: i, end: i + 2 });
+      i += 2;
+    }
+    htmlChunkStart = i;
+  }
 
   while (i < len) {
     // Detect PHP open tag
@@ -189,4 +227,4 @@ export const tokenizePhp: Tokenizer = (source: string): Token[] => {
   }
 
   return tokens;
-};
+}

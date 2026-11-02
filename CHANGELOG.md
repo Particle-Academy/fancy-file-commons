@@ -15,6 +15,15 @@ upgrading.
 
 ## [Unreleased]
 
+### Added
+
+- **PHP snippet mode.** `tokenize(code, language, { snippet: true })` and the new `tokenizePhpSnippet` start PHP in PHP mode when the code opens no block before closing one: no `<?` at all (`use Foo\Bar;\n$x = 1;`), or a `?>` ahead of the first `<?` (`echo $x; ?>\n<p>..</p>`). Code that opens with `<?php` / `<?=` / `<?` tokenizes exactly as before. Documentation surfaces (react-fancy's `CodeBlock` / `CodeView`) pass it; **file surfaces must not**, because a `.php` file really is inline HTML until its open tag. The option is a no-op for every other language. `TokenizeOptions` is exported.
+- **`highlightCodeWithVariables(source, tokens)`: highlighting that is right in both themes without knowing which.** Same spans, same escaping, but each span reads `var(--fc-<slot>,var(--fc-<slot>-l))` instead of a colour value. Pair it with **`themeVariables(light, dark)`**, which returns both palettes as `--fc-<slot>-l` / `--fc-<slot>-d` custom properties for the host element's `style`, and a CSS rule that sets `--fc-<slot>` to `var(--fc-<slot>-d)` in dark mode. Also exported: `themeColorVar(key)`, `THEME_COLOR_KEYS` (every `ThemeColors` key), `ThemeColorKey`, and `safeCssColor`, the colour allow-list `highlightCode` already applied.
+- **Nothing existing changed:** `highlightCode`, `tokenize` without options, and `tokenizePhp` produce byte-identical output to 0.4.0. Checked against the 0.4.0 source on 13,689 language, input and palette combinations, and pinned by a golden test. `fancy-code` renders through these and needs no change. **Consumer action:** none.
+
+### Security
+
+- **`themeVariables` passes every value through the colour allow-list**, so a theme colour such as `red;background:url(...)` cannot add a declaration to a `style` attribute; it becomes `inherit`. `highlightCodeWithVariables` writes no theme value into the token HTML at all, only fixed `var()` references. Tested, along with the reassembly property for snippet mode and the variables renderer across every language and the fuzz corpus.
 ## [0.4.0] - 2026-11-02
 
 ### Added

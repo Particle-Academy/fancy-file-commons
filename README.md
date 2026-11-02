@@ -71,10 +71,19 @@ Lookups are case-insensitive and ignore a leading dot (`".env"`, `"TS"`):
 - `resolveSyntaxLanguage(language)` → the canonical id, or `null`.
 - `normalizeTokens(code, tokens)` → clamps, de-overlaps and drops empty tokens;
   `tokenize` already applies it.
+- `tokenize(code, "php", { snippet: true })` reads PHP without a `<?php` open
+  tag as PHP (documentation snippets). Leave it off for files: a `.php` file is
+  inline HTML until its open tag. Also available as `tokenizePhpSnippet`.
 
 `highlightCode(code, tokens, LIGHT_COLORS | DARK_COLORS)` renders HTML spans and
 HTML-escapes every character of the source, highlighted or not. It never
 duplicates or drops text, even for overlapping or out-of-range tokens.
+
+For server rendering, where the theme is unknown, use
+`highlightCodeWithVariables(code, tokens)`: the same spans, coloured with
+`var(--fc-<slot>,var(--fc-<slot>-l))`. Put `themeVariables(LIGHT_COLORS,
+DARK_COLORS)` (both palettes, allow-listed) in the host element's `style`, and
+set `--fc-<slot>: var(--fc-<slot>-d)` for each slot under your dark selector.
 
 The token types are a closed set shared with the palettes, so the newer
 grammars reuse existing slots: shell flags and dotenv keys are `attribute`,
@@ -127,7 +136,7 @@ const html = tokens ? highlightCode(code, tokens, LIGHT_COLORS) : null;
 |---|---|
 | `@particle-academy/fancy-diff` | the whole diff module (re-exported), + the React review UI on top |
 | `@particle-academy/fancy-code` | `annotateLines` for the CodeEditor diff gutter; `languageFromFilename` for FileViewer; every tokenizer for CodeEditor |
-| `@particle-academy/react-fancy` | `tokenize` + `highlightCode` + palettes for `CodeBlock` and `CodeView` |
+| `@particle-academy/react-fancy` | `tokenize` (snippet mode) + `highlightCodeWithVariables` + `themeVariables` for `CodeBlock` and `CodeView` |
 
 New shared file functionality (mime maps, file-tree models, artifact naming, …)
 lands here first, then the surface packages consume it.

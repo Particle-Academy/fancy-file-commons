@@ -4,13 +4,17 @@
 //      exact input (what every existing consumer does today);
 //   2. `tokenize(code, lang)` returns well-formed tokens — in bounds, non-empty,
 //      sorted, non-overlapping — so gaps + tokens reassemble exactly;
-//   3. the new grammars (shell, dotenv) are well-formed even raw.
+//   3. the new grammars (shell, dotenv) are well-formed even raw;
+//   4. the same holds in snippet mode (`{ snippet: true }`, PHP starting in PHP)
+//      and through the CSS-variable renderer (`highlightCodeWithVariables`).
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   tokenize,
   tokenizerFor,
   highlightCode,
+  highlightCodeWithVariables,
+  tokenizePhpSnippet,
   SYNTAX_LANGUAGES,
   LIGHT_COLORS,
   tokenizeShell,
@@ -141,6 +145,36 @@ for (const lang of SYNTAX_LANGUAGES) {
     }
   });
 }
+
+// Snippet mode (PHP starts in PHP, not inline HTML) must hold the same property,
+// for every language: the option is a no-op outside PHP, and inside PHP it only
+// moves where the block starts.
+for (const lang of SYNTAX_LANGUAGES) {
+  test(`${lang}: snippet-mode tokenize() is well-formed and reassembles exactly`, () => {
+    for (const src of inputs) {
+      const tokens = tokenize(src, lang, { snippet: true });
+      assert.ok(tokens, lang);
+      assertWellFormed(src, tokens, `${lang} snippet on ${JSON.stringify(src.slice(0, 60))}`);
+    }
+  });
+}
+
+test("php snippet: raw tokens render back to the exact input, in both renderers", () => {
+  for (const src of inputs) {
+    const raw = tokenizePhpSnippet(src);
+    assert.equal(unrender(highlightCode(src, raw, LIGHT_COLORS)), src, JSON.stringify(src.slice(0, 60)));
+    assert.equal(unrender(highlightCodeWithVariables(src, raw)), src, JSON.stringify(src.slice(0, 60)));
+  }
+});
+
+test("variables renderer reassembles exactly for every language", () => {
+  for (const lang of SYNTAX_LANGUAGES) {
+    for (const src of inputs) {
+      const html = highlightCodeWithVariables(src, tokenize(src, lang, { snippet: true })!);
+      assert.equal(unrender(html), src, `${lang} on ${JSON.stringify(src.slice(0, 60))}`);
+    }
+  }
+});
 
 test("shell and dotenv are well-formed even before normalisation", () => {
   for (const src of inputs) {
